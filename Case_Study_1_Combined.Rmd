@@ -1,0 +1,144 @@
+---
+title: "Case_Study_1"
+author: "Tom Gianelle"
+date: "2/18/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r sessioninfo, include=TRUE}
+sessionInfo()
+```
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r library, include=FALSE}
+
+library(DescTools)
+library(lemon)
+library(knitr)
+library(questionr)
+library(pastecs)
+library(rvest)
+library(tidyr)
+library(dplyr)
+library(RCurl)
+library(ggplot2)
+library(ngram)
+library(base)
+library(XML)
+```
+
+```{r Q1, echo=TRUE}
+## set to lemon_print functions
+knit_print.data.frame <- lemon_print
+
+setwd("~/Documents/SMU/Doing DS/Unit 7")
+breweries <- read.csv("Breweries.csv")
+beers <- read.csv("Beers.csv")
+
+## How many breweries are present in each state
+df.breweryByStateFreq <- Freq(breweries$State)
+brewery_count <- df.breweryByStateFreq[ ,1:2]
+## column names
+col_headings <- c("State", "# of Breweries")
+names(brewery_count) <- col_headings
+brewery_count
+```
+## Merged breweries and beers datasets
+
+
+```{r Q2, echo=TRUE}
+## merge
+colnames(beers)[1] <- "Beer Name"
+colnames(breweries)[1] <- "Brewery_id"
+colnames(breweries)[2] <- "Brewery Name"
+merge_files <- merge( x = breweries, y = beers, by = "Brewery_id", all = TRUE)
+head(merge_files, n=6)
+tail(merge_files, n=6)
+```
+## Number of NA's in each column
+
+
+```{r Q3a, echo=TRUE}
+df <- data.frame(freq.na(merge_files))
+col_headings <- c("# of NA", "% of NA")
+names(df) <- col_headings
+df
+```
+## Median alcohol content and international bitterness unit for each state. Plot a bar chart to compare.
+
+
+```{r Q4, echo=TRUE}
+df_abv <- aggregate(merge_files$ABV, list(merge_files$State), median, na.rm = TRUE)
+col_headings <- c("State", "Median_ABV")
+names(df_abv) <- col_headings
+
+df_ibu <- aggregate(merge_files$IBU, list(merge_files$State), median, na.rm = TRUE)
+col_headings <- c("State", "Median_IBU")
+names(df_ibu) <- col_headings
+
+merge_bev_analysis <- merge(df_abv, df_ibu, by = "State")
+col_headings <- c("State", "Median_ABV", "Median_IBU")
+names(merge_bev_analysis) <- col_headings
+
+## median_bev_analysis <- aggregate(merge_files[,c("ABV","IBU")],list(merge_files$State),median,na.rm=TRUE)
+## colnames(median_bev_analysis)[1] <- "State"
+median_bev_analysis <- merge_bev_analysis[complete.cases(merge_bev_analysis),]
+par(las=2)
+MedianGraphics_ABV <- ggplot(data = median_bev_analysis, aes(x = State, y = Median_ABV, fill = Median_IBU))+geom_bar(stat = "identity", position="dodge")+labs(title = "Median IBU and ABV of Beer by State", x = "State", y = "IBU")+theme(plot.title = element_text(hjust = 0.5))
+MedianGraphics_ABV + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+MedianGraphics_IBU <- ggplot(data = median_bev_analysis, aes(x = State, y = Median_IBU, fill = Median_ABV))+geom_bar(stat = "identity", position="dodge")+labs(title = "Median IBU and Median ABV of Beer by State", x = "State", y = "IBU")+theme(plot.title = element_text(hjust = 0.5))
+MedianGraphics_IBU + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+```
+
+## Median alcohol content and international bitterness unit for each state. Plot a bar chart to compare.
+
+
+```{r Q5a, echo=TRUE}
+
+merge_files[which.max(merge_files$ABV),]
+
+
+```
+```{r Q5b, echo=TRUE}
+
+merge_files[which.max(merge_files$IBU), ]
+
+```
+
+## Summary statistics for the ABV variable.
+```{r Q6, echo=TRUE}
+summary(beers$ABV, na.rm = TRUE)
+## summary(beers$IBU, na.rm = TRUE)
+
+describe(beers$ABV, na.rm = TRUE)
+## describe(beers$IBU, na.rm = TRUE)
+
+density(beers$ABV,na.rm = TRUE)
+## density(beers$IBU, na.rm = TRUE)
+
+hist(merge_files$ABV)
+## hist(merge_files$IBU)
+plot(merge_bev_analysis$Median_ABV, type = "o")
+## plot(merge_bev_analysis$Median_IBU, type = "o")
+
+```
+
+## Summary statistics for the ABV variable.
+```{r Q7, echo=TRUE}
+## scatterplots
+plot(beers$ABV, beers$IBU, main=("Scatterplot: ABV vs IBU"), xlab = "ABV", ylab="IBU")
+## plot(df$Median_ABV, df$Median_IBU, main=("ABV vs IBU Scatterplot"), xlab = "ABV", ylab="IBU")
+
+
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
