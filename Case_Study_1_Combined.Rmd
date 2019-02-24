@@ -1,6 +1,6 @@
 ---
 title: "Case_Study_1"
-author: "Tom Gianelle"
+author: "Tom Gianelle and Shane Weinstock"
 date: "2/18/2019"
 output: html_document
 ---
@@ -28,6 +28,7 @@ library(pastecs)
 library(usmap)
 library(ggplot2)
 library(openintro)
+library(Hmisc)
 library(rvest)
 library(tidyr)
 library(dplyr)
@@ -121,6 +122,17 @@ merge_files[which.max(merge_files$IBU), ]
 ```{r Q6, echo=TRUE}
 summary(beers$ABV, na.rm = TRUE)
 ## summary(beers$IBU, na.rm = TRUE)
+df_bev <- data.frame(merge_files$ABV, merge_files$IBU)
+col_headings <- c("ABV", "IBU")
+names(df_bev) <- col_headings
+res <- cor(df_bev, use="complete.obs")
+round(res,2)
+
+##ABV <- data.frame(beers$ABV, na.rm = TRUE)
+##IBU <- data.frame(beers$IBU, na.rm = TRUE)
+df_bev[complete.cases(df_bev),]
+res2 <- rcorr(as.matrix(df_bev))
+res2
 
 describe(beers$ABV, na.rm = TRUE)
 ## describe(beers$IBU, na.rm = TRUE)
@@ -132,6 +144,7 @@ hist(merge_files$ABV)
 ## hist(merge_files$IBU)
 plot(merge_bev_analysis$Median_ABV, type = "o")
 ## plot(merge_bev_analysis$Median_IBU, type = "o")
+
 
 ```
 
@@ -149,7 +162,7 @@ plot(merge_bev_analysis$Median_ABV, type = "o")
 ## plot(beers$ABV, beers$IBU, main=("Scatterplot: ABV vs IBU"), xlab = "ABV", ylab="IBU")
 ## abline(lm(ABV ~ IBU, data = beers), col="blue")
 ## plot(df$Median_ABV, df$Median_IBU, main=("ABV vs IBU Scatterplot"), xlab = "ABV", ylab="IBU")
-ggsp <- ggplot(data=beers, aes(x=ABV, y=IBU)) +
+ggsp <- ggplot(data=df_bev, aes(x=ABV, y=IBU)) +
     geom_point(shape=1)     # Use hollow circles
     
 ggsp + geom_smooth(method=lm)
